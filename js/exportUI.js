@@ -11,6 +11,7 @@ let currentSpreadsheetId = null;
 async function initializeExportPage() {
   await loadStats();
   await loadSpreadsheetId();
+  await loadApiKey();
   setupEventListeners();
   await loadAutoExportSetting();
 }
@@ -78,12 +79,31 @@ async function loadAutoExportSetting() {
 }
 
 /**
+ * Load saved API key
+ */
+async function loadApiKey() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(['googleSheetsApiKey'], (result) => {
+      if (result.googleSheetsApiKey) {
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        if (apiKeyInput) {
+          apiKeyInput.value = result.googleSheetsApiKey;
+        }
+      }
+      resolve();
+    });
+  });
+}
+
+/**
  * Setup event listeners
  */
 function setupEventListeners() {
   const exportBtn = document.getElementById('exportBtn');
   const viewBtn = document.getElementById('viewBtn');
   const autoExportCheckbox = document.getElementById('autoExport');
+  const copySheetIdBtn = document.getElementById('copySheetIdBtn');
+  const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
 
   if (exportBtn) {
     exportBtn.addEventListener('click', handleExport);
@@ -96,6 +116,47 @@ function setupEventListeners() {
   if (autoExportCheckbox) {
     autoExportCheckbox.addEventListener('change', (e) => {
       chrome.storage.sync.set({ autoExport: e.target.checked });
+    });
+  }
+
+  if (copySheetIdBtn) {
+    copySheetIdBtn.addEventListener('click', () => {
+      const sheetId = document.getElementById('sheetIdDisplay').textContent;
+      navigator.clipboard.writeText(sheetId).then(() => {
+        const originalText = copySheetIdBtn.textContent;
+        copySheetIdBtn.textContent = '✓ Copied!';
+        setTimeout(() => {
+          copySheetIdBtn.textContent = originalText;
+        }, 2000);
+      });
+    });
+  }
+
+  if (saveApiKeyBtn) {
+    saveApiKeyBtn.addEventListener('click', () => {
+      const apiKey = document.getElementById('apiKeyInput').value;
+      if (apiKey.trim()) {
+        chrome.storage.sync.set({ googleSheetsApiKey: apiKey }, () => {
+          const originalText = saveApiKeyBtn.textContent;
+          saveApiKeyBtn.textContent = '✓ Saved!';
+          saveApiKeyBtn.style.background = '#28a745';
+          setTimeout(() => {
+            saveApiKeyBtn.textContent = originalText;
+            saveApiKeyBtn.style.background = '#667eea';
+          }, 2000);
+        });
+      } else {
+        chrome.storage.sync.remove(['googleSheetsApiKey'], () => {
+          const originalText = saveApiKeyBtn.textContent;
+          saveApiKeyBtn.textContent = '✓ Cleared!';
+          saveApiKeyBtn.style.background = '#dc3545';
+          setTimeout(() => {
+            saveApiKeyBtn.textContent = originalText;
+            saveApiKeyBtn.style.background = '#667eea';
+            document.getElementById('apiKeyInput').value = '';
+          }, 2000);
+        });
+      }
     });
   }
 }
@@ -140,26 +201,15 @@ async function handleExport() {
       return;
     }
 
-    // Call export function from background script
-    const result = await new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        {
-          action: 'exportToSheets',
-          data: watchtimeData,
-          spreadsheetId: currentSpreadsheetId,
-        },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            resolve({
-              success: false,
-              error: chrome.runtime.lastError.message,
-            });
-          } else {
-            resolve(response);
-          }
-        }
-      );
-    });
+    // Call export function from background script with retry
+    const result = await sendMessageWithRetry(
+      {
+        action: 'exportToSheets',
+        data: watchtimeData,
+        spreadsheetId: currentSpreadsheetId,
+      },
+      3 // retry 3 times
+    );
 
     if (result.success) {
       currentSpreadsheetId = result.spreadsheetId;
@@ -181,6 +231,61 @@ async function handleExport() {
   } finally {
     exportBtn.disabled = false;
   }
+}
+
+/**
+ * Send message to background script with retry logic
+ */
+async function sendMessageWithRetry(message, maxRetries = 3) {
+  return new Promise((resolve, reject) => {
+    let retries = 0;
+
+    const attemptSend = () => {
+      try {
+        chrome.runtime.sendMessage(message, (response) => {
+          if (chrome.runtime.lastError) {
+            const error = chrome.runtime.lastError.message;
+            // Retry on context invalidated error
+            if (
+              error.includes('context invalidated') ||
+              error.includes('port closed')
+            ) {
+              if (retries < maxRetries) {
+                retries++;
+                console.log(`Retry attempt ${retries}/${maxRetries}...`);
+                setTimeout(attemptSend, 1000); // Wait 1 second before retry
+                return;
+              }
+            }
+            resolve({
+              success: false,
+              error: error,
+            });
+          } else if (response) {
+            resolve(response);
+          } else {
+            resolve({
+              success: false,
+              error: 'No response from background script',
+            });
+          }
+        });
+      } catch (error) {
+        if (retries < maxRetries) {
+          retries++;
+          console.log(`Retry attempt ${retries}/${maxRetries}...`);
+          setTimeout(attemptSend, 1000);
+        } else {
+          resolve({
+            success: false,
+            error: error.message,
+          });
+        }
+      }
+    };
+
+    attemptSend();
+  });
 }
 
 /**

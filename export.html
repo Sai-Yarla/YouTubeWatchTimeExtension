@@ -282,9 +282,19 @@
                 <input type="checkbox" id="includeToday" checked>
                 <label for="includeToday">Include today's data</label>
             </div>
-            <div id="sheetIdInfo" style="margin-top: 12px; display: none;">
-                <div class="stat-label">Current Sheet ID</div>
+            
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #ddd;">
+                <div class="stat-label" style="margin-bottom: 8px;">Google Sheets API Key (Optional)</div>
+                <input type="password" id="apiKeyInput" placeholder="Paste API key here..." 
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; margin-bottom: 8px;">
+                <button id="saveApiKeyBtn" style="width: 100%; padding: 8px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">Save API Key</button>
+                <small style="color: #999; display: block; margin-top: 6px;">Leave empty to use default authentication</small>
+            </div>
+            
+            <div id="sheetIdInfo" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #ddd; display: none;">
+                <div class="stat-label">Current Sheet</div>
                 <div class="sheet-id-display" id="sheetIdDisplay"></div>
+                <button id="copySheetIdBtn" style="width: 100%; margin-top: 8px; padding: 8px; background: #f0f4ff; color: #667eea; border: 1px solid #667eea; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy Sheet ID</button>
             </div>
         </div>
 

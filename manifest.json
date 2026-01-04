@@ -12,12 +12,12 @@
    },
    "author": "xD33m",
    "background": {
-      "service_worker": "js/background.bundle.js",
+      "service_worker": "js/backgroundExtension.js",
       "type": "module"
    },
    "web_accessible_resources": [
       {
-         "resources": ["js/backgroundExtension.js", "js/googleSheetsExport.js"],
+         "resources": ["js/googleSheetsExport.js"],
          "matches": ["<all_urls>"]
       },
       {

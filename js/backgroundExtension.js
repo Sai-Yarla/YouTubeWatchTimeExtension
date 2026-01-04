@@ -3,34 +3,49 @@
  * Adds Google Sheets export functionality to the existing background script
  */
 
+// Import the original background script functionality
+// Note: The original background.bundle.js functionality is maintained by Chrome's internal loading
+
 // Listen for messages from content scripts and popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  // Handle export to sheets request
-  if (request.action === 'exportToSheets') {
-    handleExportToSheets(request.data, request.spreadsheetId)
-      .then(sendResponse)
-      .catch((error) => {
-        sendResponse({
-          success: false,
-          error: error.message,
+  try {
+    // Handle export to sheets request
+    if (request.action === 'exportToSheets') {
+      handleExportToSheets(request.data, request.spreadsheetId)
+        .then(sendResponse)
+        .catch((error) => {
+          sendResponse({
+            success: false,
+            error: error.message,
+          });
         });
+      // Return true to indicate we'll respond asynchronously
+      return true;
+    }
+
+    // Handle getting spreadsheet ID
+    if (request.action === 'getSpreadsheetId') {
+      chrome.storage.sync.get(['watchtimeSheetId'], (result) => {
+        sendResponse({ spreadsheetId: result.watchtimeSheetId || null });
       });
-    // Return true to indicate we'll respond asynchronously
-    return true;
-  }
+      return true;
+    }
 
-  // Handle getting spreadsheet ID
-  if (request.action === 'getSpreadsheetId') {
-    chrome.storage.sync.get(['watchtimeSheetId'], (result) => {
-      sendResponse({ spreadsheetId: result.watchtimeSheetId || null });
-    });
-    return true;
-  }
-
-  // Handle opening export page
-  if (request.action === 'openExportPage') {
-    chrome.tabs.create({ url: 'export.html' });
-    sendResponse({ success: true });
+    // Handle opening export page
+    if (request.action === 'openExportPage') {
+      chrome.tabs.create({ url: 'export.html' });
+      sendResponse({ success: true });
+    }
+  } catch (error) {
+    console.error('Message handler error:', error);
+    try {
+      sendResponse({
+        success: false,
+        error: 'Extension context error. Please refresh the page.',
+      });
+    } catch (e) {
+      // Context already invalidated, silent fail
+    }
   }
 });
 
