@@ -1,1 +1,163 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=500"/><title>Popup</title><link href="css/popup.css?e52b1fadec5ad84314e7" rel="stylesheet"></head><body><div id="popup-root"></div><script defer="defer" src="js/popup.bundle.js?e52b1fadec5ad84314e7"></script></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Watchtime Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 400px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-subtext {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .status-message {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            text-align: center;
+            min-height: 20px;
+            display: none;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid rgba(76, 175, 80, 0.6);
+        }
+
+        .status-message.error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid rgba(244, 67, 54, 0.6);
+        }
+
+        .status-message.loading {
+            background: rgba(255, 152, 0, 0.3);
+            border: 1px solid rgba(255, 152, 0, 0.6);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .grid .stat-box {
+            padding: 10px;
+        }
+
+        .grid .stat-value {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📺 Watchtime Tracker</h1>
+        
+        <div class="grid">
+            <div class="stat-box">
+                <div class="stat-label">Today</div>
+                <div class="stat-value" id="todayTime">0h 0m</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Total</div>
+                <div class="stat-value" id="totalTime">0h 0m</div>
+            </div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-label">Total Days Tracked</div>
+            <div class="stat-value" id="totalDays">0</div>
+            <div class="stat-subtext" id="lastTracked">No data yet</div>
+        </div>
+
+        <div class="button-group">
+            <button id="exportBtn">📊 Export to Excel</button>
+            <button id="resetBtn">🔄 Reset Data</button>
+        </div>
+
+        <div class="status-message" id="statusMsg"></div>
+    </div>
+
+    <script src="js/popup.js"></script>
+</body>
+</html>
