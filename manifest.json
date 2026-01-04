@@ -1,0 +1,70 @@
+{
+   "action": {
+      "default_icon": {
+         "128": "assets/icons/favicon-128.png",
+         "16": "assets/icons/favicon-16.png",
+         "32": "assets/icons/favicon-32.png",
+         "48": "assets/icons/favicon-48.png",
+         "64": "assets/icons/favicon-64.png"
+      },
+      "default_popup": "popup.html",
+      "default_title": "WatchtimeTracker"
+   },
+   "author": "xD33m",
+   "background": {
+      "service_worker": "js/background.bundle.js",
+      "type": "module"
+   },
+   "web_accessible_resources": [
+      {
+         "resources": ["js/backgroundExtension.js", "js/googleSheetsExport.js"],
+         "matches": ["<all_urls>"]
+      },
+      {
+         "matches": ["*://*.youtube.com/*"],
+         "resources": ["js/youtubeHook.bundle.js"],
+         "use_dynamic_url": false
+      },
+      {
+         "matches": ["*://*.twitch.tv/*"],
+         "resources": ["js/twitchHook.bundle.js"],
+         "use_dynamic_url": false
+      }
+   ],
+   "content_scripts": [ {
+      "all_frames": true,
+      "js": [ "js/contentScript.bundle.js" ],
+      "matches": [ "*://*.youtube.com/*", "*://*.twitch.tv/*" ],
+      "run_at": "document_start"
+   } ],
+   "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'"
+   },
+   "description": "Track your activity on Youtube and Twitch",
+   "homepage_url": "https://analytics.lucask.dev/",
+   "host_permissions": [ "*://*.youtube.com/*", "*://*.twitch.tv/*" ],
+   "icons": {
+      "128": "assets/icons/favicon-128.png",
+      "16": "assets/icons/favicon-16.png",
+      "32": "assets/icons/favicon-32.png",
+      "48": "assets/icons/favicon-48.png",
+      "64": "assets/icons/favicon-64.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAozQju+yc2W58hKVFDMWJRqo7EwV02i8b3LXMbQ0S7j+1pSoCzgMNFwZTi6GN2vMRcVEZ/3yWdC+3KbHGqxtDy3Grmy8UHajoHQ4XAze+/JT6ZXKs4rN7y1rRB767pBA6pUbMyHiQ2A3YaKr4zW7JslbcFWt6/DebAoZfXwtio+D8BX1aKtMJrJBkr3nP48ftd92arvxb50fe9CQE5crcCZh6co338rIjEwV4+MpUjuQIzaATmhqkqo1nDMhsFiyXKGThUO77bLlYbzF/7Z5Se9XJzp3lePrupdxSyX0YSUFpKtXki0MzVQ9+tGZ8c3oUBwkkuZPDJEeHY3qvpDkgIQIDAQAB",
+   "manifest_version": 3,
+   "minimum_chrome_version": "88",
+   "name": "Watchtime Tracker",
+   "oauth2": {
+      "client_id": "800771478396-ubhjoqlgjmlf0th9t6i3h4mrfj73mn3q.apps.googleusercontent.com",
+      "scopes": [
+         "https://www.googleapis.com/auth/userinfo.email",
+         "https://www.googleapis.com/auth/spreadsheets",
+         "https://www.googleapis.com/auth/drive"
+      ]
+   },
+   "optional_permissions": [ "downloads" ],
+   "permissions": [ "storage", "tabs", "identity", "alarms" ],
+   "short_name": "Watchtime Tracker",
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "2.4.2"
+}
