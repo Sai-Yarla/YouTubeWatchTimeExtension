@@ -12,12 +12,47 @@ const exportBtn = document.getElementById('exportBtn');
 const resetBtn = document.getElementById('resetBtn');
 const statusMsg = document.getElementById('statusMsg');
 
+// Track current session seconds for real-time display
+let currentSessionSeconds = 0;
+let lastLoadedSeconds = 0;
+let isVideoPlaying = false;
+let sessionStartTime = 0;
+
+/**
+ * Convert seconds to human-readable time with seconds
+ */
+function secondsToTime(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${hours}h ${minutes}m ${seconds}s`;
+}
+
 /**
  * Load and display statistics
  */
 async function loadStats() {
   chrome.runtime.sendMessage({ action: 'getStats' }, (response) => {
     if (response) {
+      lastLoadedSeconds = response.raw.todaySeconds;
+      currentSessionSeconds = 0;
+      sessionStartTime = Date.now();
+      
+      // Check if a video is currently playing
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]?.url?.includes('youtube.com')) {
+          chrome.tabs.sendMessage(tabs[0].id, { action: 'getPlayerState' }, (playerResponse) => {
+            if (playerResponse && playerResponse.isPlaying) {
+              isVideoPlaying = true;
+            } else {
+              isVideoPlaying = false;
+            }
+          }).catch(() => {
+            isVideoPlaying = false;
+          });
+        }
+      });
+      
       todayTimeEl.textContent = response.today;
       totalTimeEl.textContent = response.total;
       totalDaysEl.textContent = response.totalDays;
@@ -81,6 +116,15 @@ document.addEventListener('visibilitychange', () => {
 
 // Initial load
 loadStats();
-setInterval(loadStats, 2000); // Refresh every 2 seconds while popup is open
+setInterval(loadStats, 2000); // Refresh stats every 2 seconds
+
+// Update display every 100ms to show seconds changing in real-time
+setInterval(() => {
+  if (isVideoPlaying && sessionStartTime > 0) {
+    const elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
+    const totalTodaySeconds = lastLoadedSeconds + elapsedSeconds;
+    todayTimeEl.textContent = secondsToTime(totalTodaySeconds);
+  }
+}, 100);
 
 console.log('YouTube Watchtime Tracker - Popup Script loaded');

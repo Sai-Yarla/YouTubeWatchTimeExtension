@@ -51,6 +51,17 @@ function getPlayerState() {
 }
 
 /**
+ * Listen for messages from popup
+ */
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'getPlayerState') {
+    const playerState = getPlayerState();
+    const isPlaying = playerState === 1;
+    sendResponse({ isPlaying, videoId: getVideoIdFromUrl(), videoTitle: getVideoTitle() });
+  }
+});
+
+/**
  * Monitor video element for play/pause events
  */
 function monitorVideoElement() {
